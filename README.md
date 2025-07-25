@@ -1,0 +1,2 @@
+# DeepSeekKill
+用于对deepseek的api进行压测的小工具
