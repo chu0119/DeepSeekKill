@@ -1,9 +1,3 @@
-# DeepSeekKill
-用于对deepseek的api进行压测的小工具
-以下是针对您的DeepSeek API压力测试工具的功能介绍和主要功能描述，适用于发布说明或README文档：
-
----
-
 ### DeepSeek API 压力测试工具 - 专业版
 
 #### 工具概述
