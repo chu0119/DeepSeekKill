@@ -1,4 +1,5 @@
 ### DeepSeek API 压力测试工具 - 专业版
+<img width="1050" height="873" alt="image" src="https://github.com/user-attachments/assets/92adf2a5-5f6d-4920-ad56-79ac6f629471" />
 
 #### 工具概述
 本工具是一个专业的DeepSeek API压力测试解决方案，专为开发者和系统管理员设计，用于评估DeepSeek API在高并发场景下的性能表现。通过模拟真实用户请求模式，该工具可帮助您：
