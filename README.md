@@ -86,9 +86,8 @@ python deepseek_stress_tester.py
 
 ---
 
-### 发布说明建议
 
-**标题**：DeepSeek API压力测试工具 - 专业版 v1.0
+DeepSeek API压力测试工具 - 专业版 v1.0
 **版本**：1.0.0
 **发布日期**：2025/7/25
 **作者**：[chu0119](https://github.com/chu0119)
@@ -116,4 +115,4 @@ python deepseek_stress_tester.py
 - 建议从低并发开始逐步增加压力
 
 **问题反馈**：
-欢迎通过[issue]提交问题或建议
+欢迎通过[[issue]](https://github.com/chu0119/DeepSeekKill/issues)提交问题或建议
