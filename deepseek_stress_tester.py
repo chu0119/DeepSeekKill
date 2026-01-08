@@ -9,6 +9,29 @@ from queue import Queue
 
 
 class DeepSeekStressTester:
+    VOCAB = [
+        "人工智能", "机器学习", "深度学习", "神经网络", "自然语言处理",
+        "计算机视觉", "大数据", "算法优化", "模型训练", "压力测试",
+        "API性能", "分布式系统", "高并发", "响应时间", "吞吐量",
+        "Python", "Java", "C++", "JavaScript", "Golang",
+        "云计算", "边缘计算", "物联网", "区块链", "网络安全",
+        "数据结构", "算法分析", "操作系统", "数据库", "软件工程",
+        "前端开发", "后端开发", "全栈开发", "DevOps", "微服务",
+        "容器化", "Kubernetes", "Docker", "CI/CD", "自动化测试",
+        "性能优化", "内存管理", "多线程", "并发编程", "异步IO",
+        "机器学习", "深度学习", "强化学习", "迁移学习", "生成对抗网络",
+        "计算机视觉", "图像识别", "目标检测", "语义分割", "OCR",
+        "自然语言处理", "文本分类", "情感分析", "机器翻译", "命名实体识别",
+        "语音识别", "语音合成", "语音助手", "对话系统", "聊天机器人",
+        "推荐系统", "协同过滤", "内容推荐", "个性化推荐", "广告推荐",
+        "大数据", "Hadoop", "Spark", "Flink", "数据仓库",
+        "数据挖掘", "数据分析", "数据可视化", "商业智能", "数据科学",
+        "云计算", "AWS", "Azure", "GCP", "阿里云",
+        "边缘计算", "物联网", "传感器网络", "智能家居", "工业互联网",
+        "区块链", "比特币", "以太坊", "智能合约", "去中心化应用",
+        "网络安全", "加密算法", "防火墙", "入侵检测", "渗透测试"
+    ]
+
     def __init__(self, root):
         self.root = root
         self.root.title("DeepSeek API 压力测试工具 - 专业版")
@@ -29,9 +52,11 @@ class DeepSeekStressTester:
         self.counter_lock = threading.Lock()
 
         self.log_queue = Queue()
+        self.stats_update_interval_ms = 200
 
         self.setup_ui()
         self.update_log()
+        self.update_stats()
 
     def setup_ui(self):
         # API 密钥输入区域
@@ -127,15 +152,26 @@ class DeepSeekStressTester:
         self.root.after(100, self.update_log)
 
     def update_stats(self):
-        self.stats_vars[0].set(str(self.request_count))
-        self.stats_vars[1].set(str(self.success_count))
-        self.stats_vars[2].set(str(self.failure_count))
-        self.stats_vars[3].set(str(self.active_threads))
+        with self.counter_lock:
+            request_count = self.request_count
+            success_count = self.success_count
+            failure_count = self.failure_count
+            active_threads = self.active_threads
+            total_response_time = getattr(self, "total_response_time", 0.0)
+
+        self.stats_vars[0].set(str(request_count))
+        self.stats_vars[1].set(str(success_count))
+        self.stats_vars[2].set(str(failure_count))
+        self.stats_vars[3].set(str(active_threads))
 
         # 计算平均响应时间（仅当有成功请求时）
-        if self.success_count > 0 and hasattr(self, 'total_response_time'):
-            avg_time = self.total_response_time / self.success_count
+        if success_count > 0:
+            avg_time = total_response_time / success_count
             self.stats_vars[5].set(f"{avg_time:.2f}s")
+        else:
+            self.stats_vars[5].set("0.00s")
+
+        self.root.after(self.stats_update_interval_ms, self.update_stats)
 
     def start_test(self):
         self.api_key = self.api_entry.get().strip()
@@ -188,8 +224,8 @@ class DeepSeekStressTester:
             thread = threading.Thread(target=self.run_stress_test, args=(i + 1,), daemon=True)
             thread.start()
             self.threads.append(thread)
-            self.active_threads += 1
-            self.update_stats()
+            with self.counter_lock:
+                self.active_threads += 1
 
     def stop_test(self):
         self.is_testing = False
@@ -203,8 +239,8 @@ class DeepSeekStressTester:
         for thread in self.threads:
             thread.join(timeout=1.0)
 
-        self.active_threads = 0
-        self.update_stats()
+        with self.counter_lock:
+            self.active_threads = 0
         self.log_message("所有工作线程已停止")
 
     def get_prompt_template(self, token_length):
@@ -242,28 +278,7 @@ class DeepSeekStressTester:
             "Content-Type": "application/json"
         }
 
-        # 词汇库
-        vocab = ["人工智能", "机器学习", "深度学习", "神经网络", "自然语言处理",
-                 "计算机视觉", "大数据", "算法优化", "模型训练", "压力测试",
-                 "API性能", "分布式系统", "高并发", "响应时间", "吞吐量",
-                 "Python", "Java", "C++", "JavaScript", "Golang",
-                 "云计算", "边缘计算", "物联网", "区块链", "网络安全",
-                 "数据结构", "算法分析", "操作系统", "数据库", "软件工程",
-                 "前端开发", "后端开发", "全栈开发", "DevOps", "微服务",
-                 "容器化", "Kubernetes", "Docker", "CI/CD", "自动化测试",
-                 "性能优化", "内存管理", "多线程", "并发编程", "异步IO",
-                 "机器学习", "深度学习", "强化学习", "迁移学习", "生成对抗网络",
-                 "计算机视觉", "图像识别", "目标检测", "语义分割", "OCR",
-                 "自然语言处理", "文本分类", "情感分析", "机器翻译", "命名实体识别",
-                 "语音识别", "语音合成", "语音助手", "对话系统", "聊天机器人",
-                 "推荐系统", "协同过滤", "内容推荐", "个性化推荐", "广告推荐",
-                 "大数据", "Hadoop", "Spark", "Flink", "数据仓库",
-                 "数据挖掘", "数据分析", "数据可视化", "商业智能", "数据科学",
-                 "云计算", "AWS", "Azure", "GCP", "阿里云",
-                 "边缘计算", "物联网", "传感器网络", "智能家居", "工业互联网",
-                 "区块链", "比特币", "以太坊", "智能合约", "去中心化应用",
-                 "网络安全", "加密算法", "防火墙", "入侵检测", "渗透测试"]
-
+        session = requests.Session()
         self.log_message(f"线程 #{thread_id}: 已启动 | 请求长度: {self.token_length}tokens")
 
         while self.is_testing:
@@ -272,18 +287,15 @@ class DeepSeekStressTester:
                 if self.token_length <= 20:
                     # 短文本：使用模板
                     prompt = self.get_prompt_template(self.token_length)
-                    word_count = random.randint(5, 8)  # 短文本词数
                 elif self.token_length <= 50:
                     # 中等文本：混合模板和随机词汇
                     if random.random() > 0.3:
                         prompt = self.get_prompt_template(self.token_length)
                     else:
-                        prompt = " ".join(random.choices(vocab, k=random.randint(8, 12)))
-                    word_count = random.randint(8, 15)
+                        prompt = " ".join(random.choices(self.VOCAB, k=random.randint(8, 12)))
                 else:
                     # 长文本：主要使用模板
                     prompt = self.get_prompt_template(self.token_length)
-                    word_count = random.randint(15, 25)
 
                 payload = {
                     "model": self.model_var.get(),
@@ -293,13 +305,14 @@ class DeepSeekStressTester:
                 }
 
                 # 发送API请求 - 修复括号问题
-                start_time = time.time()
-                response = requests.post(
+                start_time = time.perf_counter()
+                response = session.post(
                     "https://api.deepseek.com/v1/chat/completions",
                     headers=headers,
-                    data=json.dumps(payload)
+                    json=payload,
+                    timeout=15
                 )  # 添加了缺失的右括号
-                elapsed = time.time() - start_time
+                elapsed = time.perf_counter() - start_time
 
                 # 使用锁安全更新计数器
                 with self.counter_lock:
@@ -324,9 +337,6 @@ class DeepSeekStressTester:
                     self.log_message(
                         f"线程 #{thread_id} - 失败 | 长度: {self.token_length}tokens | 状态码: {response.status_code} | 错误: {error_msg}")
 
-                # 更新统计信息
-                self.update_stats()
-
                 # 根据token长度调整请求间隔
                 if self.token_length <= 20:
                     sleep_time = random.uniform(0.1, 0.3)  # 短文本快速请求
@@ -341,13 +351,11 @@ class DeepSeekStressTester:
                 with self.counter_lock:
                     self.failure_count += 1
                 self.log_message(f"线程 #{thread_id} - 异常: {str(e)}")
-                self.update_stats()
                 time.sleep(1)
 
         self.log_message(f"线程 #{thread_id}: 已停止")
         with self.counter_lock:
             self.active_threads -= 1
-        self.update_stats()
 
 
 if __name__ == "__main__":
